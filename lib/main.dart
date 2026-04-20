@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:interview/view/dashboard_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import 'package:interview/view/login_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async{
+
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("access_token");
+
+  runApp(MyApp(token: token));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? token;
+
+  const MyApp({super.key, this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,9 @@ class MyApp extends StatelessWidget {
               ),
               useMaterial3: true,
             ),
-            home: LoginScreen(),
+            home: token != null && token!.isNotEmpty
+                ? DashboardScreen()
+                : LoginScreen(),
           ),
         );
       },
