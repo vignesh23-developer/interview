@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class LoginResponse {
   final String accessToken;
   final String username;
@@ -11,12 +13,21 @@ class LoginResponse {
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
-      accessToken: json['access_token'],
-      username: json['user']['username'],
+      accessToken: json['access_token'] ?? '',
+      username: json['user']?['username'] ?? '',
       locations: (json['locations'] as List)
           .map((e) => LocationModel.fromJson(e))
           .toList(),
     );
+  }
+
+  static String locationsToJson(List<LocationModel> locations) {
+    return jsonEncode(locations.map((e) => e.toJson()).toList());
+  }
+
+   static List<LocationModel> locationsFromJson(String str) {
+    final List data = jsonDecode(str);
+    return data.map((e) => LocationModel.fromJson(e)).toList();
   }
 }
 
@@ -46,5 +57,16 @@ class LocationModel {
       country: json['country'] ?? '',
       image: json['media']?['display_url'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "city": city,
+      "state": state,
+      "country": country,
+      "image": image,
+    };
   }
 }

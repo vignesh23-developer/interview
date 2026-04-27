@@ -6,11 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import 'package:interview/view/login_screen.dart';
 
+import 'controller/login_controller.dart';
+import 'core/constants/shared_preference.dart';
+
 void main() async{
-
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString("access_token");
-
+  WidgetsFlutterBinding.ensureInitialized();
+  await SharedPrefService.init();
+  final token = SharedPrefService.getToken();
+  Get.put(AuthController());
   runApp(MyApp(token: token));
 }
 

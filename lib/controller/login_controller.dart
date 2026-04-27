@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import '../core/constants/api_contants.dart';
+import '../core/constants/shared_preference.dart';
 import '../core/services/api_services.dart';
 import '../model/login_model.dart';
 import '../view/dashboard_screen.dart';
@@ -17,29 +20,57 @@ class AuthController extends GetxController {
 
   var locations = <LocationModel>[].obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    loadSavedLocations();
+  }
+
+  void loadSavedLocations() {
+    final locString = SharedPrefService.getString("locations");
+
+    if (locString != null && locString.isNotEmpty) {
+      final list = LoginResponse.locationsFromJson(locString);
+      locations.assignAll(list);
+
+      print("LOADED LOCATIONS COUNT: ${locations.length}");
+    }
+  }
+
   Future<void> login() async {
     isLoading.value = true;
 
     try {
       final response = await _apiService.post(ApiConstants.login, {
-        "username": usernameController.text,
-        "password": passwordController.text,
+        "username": usernameController.text.trim(),
+        "password": passwordController.text.trim(),
       });
 
-      final data = LoginResponse.fromJson(response.data);
+      if (response.statusCode == 200) {
+        final data = LoginResponse.fromJson(response.data);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("access_token", data.accessToken);
 
-      locations.assignAll(data.locations);
+        await SharedPrefService.setToken(data.accessToken);
 
-      toastification.show(
-        context: Get.context!,
-        title: const Text("Login Successful"),
-        type: ToastificationType.success,
-      );
 
-      Get.off(() => DashboardScreen());
+        await SharedPrefService.setString(
+          "locations",
+          LoginResponse.locationsToJson(data.locations),
+        );
+
+
+        locations.assignAll(data.locations);
+
+        toastification.show(
+          context: Get.context!,
+          title: const Text("Login Successful"),
+          type: ToastificationType.success,
+        );
+
+        Get.off(() => DashboardScreen());
+      } else {
+        throw Exception("Login failed");
+      }
     } catch (e) {
       toastification.show(
         context: Get.context!,

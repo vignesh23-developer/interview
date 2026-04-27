@@ -10,6 +10,7 @@ class DashboardScreen extends StatelessWidget {
 
   final AuthController controller = Get.find();
   final RxString searchText = "".obs;
+  final RxnInt selectedLocationId = RxnInt();
 
   @override
   Widget build(BuildContext context) {
